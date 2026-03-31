@@ -1,0 +1,9 @@
+{
+  "title": "My Game",
+  "description": "A fun free browser game — play instantly with no downloads.",
+  "keywords": ["browser game", "free", "online"],
+  "category": "Arcade",
+  "author": "",
+  "image": "preview.png",
+  "playMode": "SinglePlayer"
+}
