@@ -17,14 +17,13 @@ That's it — PewPlay's builder will pick it up automatically on the next build.
 ├── index.html       ← Main page (loaded inside PewPlay's iframe)
 ├── style.css        ← Styles
 ├── game.js          ← Game logic
-├── seo.json         ← SEO metadata (title, description, keywords)
+├── game.json        ← SEO metadata (title, description, keywords)
 ├── preview.png      ← Card thumbnail (512×512 recommended)
-└── screenshot-*.png ← Optional screenshots for rich SEO
 ```
 
 ## Files That Matter
 
-### `seo.json` — How your game appears on PewPlay
+### `game.json` — How your game appears on PewPlay
 
 ```json
 {
@@ -33,7 +32,6 @@ That's it — PewPlay's builder will pick it up automatically on the next build.
   "keywords": ["arcade", "puzzle", "multiplayer"],
   "category": "Arcade",
   "author": "Your Name",
-  "image": "preview.png",
   "playMode": "SinglePlayer"
 }
 ```
@@ -47,7 +45,6 @@ All fields are optional. If missing, PewPlay generates defaults from the repo na
 | `keywords`    | Keywords for SEO and structured data                 |
 | `category`    | Game category (`Arcade`, `Puzzle`, `Strategy`, etc.) |
 | `author`      | Shown in structured data                             |
-| `image`       | OG image path (relative to repo root)                |
 | `playMode`    | `SinglePlayer` or `MultiPlayer`                      |
 
 ### `preview.png` — The card image
