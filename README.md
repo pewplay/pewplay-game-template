@@ -67,7 +67,7 @@ Il file completo di esempio è `game.json` di questo template. Ogni campo compar
 | `controls` | tabella "Controls" e pulsante **?** | `{ "input": "Space", "action": "Jump" }` |
 | `tips` | elenco "Tips" | 2–5 consigli, una frase ciascuno |
 | `faq` | domande e risposte in fondo alla pagina | 2–4 domande che un giocatore farebbe davvero |
-| `category` | pagina di categoria (`/puzzle-games/`…), breadcrumb | `Action`, `Arcade`, `Board`, `Card`, `Casual`, `Educational`, `Puzzle`, `Racing`, `Sports`, `Strategy`, `Other` |
+| `category` | pagina di categoria (`/puzzle-games/`…), filtri in home, breadcrumb | Una sola, meglio se standard: `Action`, `Arcade`, `Board`, `Card`, `Casual`, `Educational`, `Puzzle`, `Racing`, `Sports`, `Strategy`, `Other`. Maiuscole e plurali non contano (`puzzle`, `Puzzles` → `Puzzle`). Una categoria nuova funziona, ma la sua pagina ha un testo generico: per darle un testo suo aggiungila in `src/strings.js` (`CATEGORY_INFO`) del repo `pewplay` |
 | `tags` | etichette, ricerca del sito | 3–6 parole chiave |
 | `author` | "By …" in fondo alla scheda | |
 | `playMode` | etichetta giocatori | `SinglePlayer`, `MultiPlayer`, `Both` |
