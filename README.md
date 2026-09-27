@@ -44,7 +44,7 @@ Quando va bene, merge di `preview` in `main`: si aggiorna il sito pubblico.
 ├── style.css           ← stili
 ├── game.json           ← testi e impostazioni della pagina del gioco (vedi sotto)
 ├── preview.png         ← icona quadrata 512×512: card in home, categorie, giochi correlati
-├── cover.png           ← copertina 16:9, 1280×720: schermata "Play now", giochi in evidenza, link condivisi
+├── cover.png           ← copertina 16:9, 1280×720: schermata "Play now" e immagine dei link condivisi
 ├── screenshots/        ← 2–4 screenshot 1280×720: galleria nella pagina del gioco
 │   ├── 1.png
 │   └── 2.png
@@ -74,7 +74,7 @@ Il file completo di esempio è `game.json` di questo template. Ogni campo compar
 | `orientation` | avviso "ruota il dispositivo" su mobile | `any`, `landscape`, `portrait` |
 | `cover` | copertina (default: `cover.png`) | 16:9, 1280×720 |
 | `screenshots` | galleria (default: tutte le immagini in `screenshots/`) | max 8, consigliati 2–4 |
-| `featured` | "Featured games" in cima alla home | `true` per pochi giochi di punta |
+| `featured` | il gioco compare tra i primi nella lista della home | `true` per pochi giochi di punta |
 | `added` | badge "New" per 30 giorni, ordine in home | `AAAA-MM-GG` |
 | `draft` | `true` = mai sul sito pubblico | toglilo quando fai il merge in `main` |
 | `exclude` | file da non pubblicare | es. `["docs", "*.psd"]` |
