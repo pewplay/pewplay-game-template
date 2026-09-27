@@ -1,8 +1,18 @@
 {
+  "$schema": "https://raw.githubusercontent.com/pewplay/pewplay/main/schema/game.schema.json",
   "title": "My Game",
-  "description": "A fun free browser game — play instantly with no downloads.",
-  "keywords": ["browser game", "free", "online"],
+  "description": "Dodge the falling blocks for as long as you can. A quick free browser game, no download needed.",
+  "howToPlay": "Move left and right to avoid the red blocks. Every block you dodge is worth one point, and the game speeds up as your score grows.",
+  "controls": [
+    { "input": "← → / A D", "action": "Move" },
+    { "input": "Mouse / Touch", "action": "Follow the pointer" },
+    { "input": "Space / P", "action": "Start / pause" }
+  ],
   "category": "Arcade",
-  "author": "",
-  "playMode": "SinglePlayer"
+  "tags": ["dodge", "reflex", "arcade"],
+  "author": "PewPlay",
+  "playMode": "SinglePlayer",
+  "orientation": "any",
+  "added": "2026-09-26",
+  "draft": true
 }

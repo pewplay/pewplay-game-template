@@ -1,259 +1,237 @@
 // ================================================================
-//  PEWPLAY GAME TEMPLATE
-//  A simple "dodge the falling blocks" game to get you started.
-//  Replace this with your own game logic!
+//  PEWPLAY GAME TEMPLATE — "schiva i blocchi"
+//  Un gioco completo e minimale da cui partire. Sostituiscilo pure!
 //
-//  Structure:
-//    - Config & State
-//    - Input handling (keyboard + touch + mouse)
-//    - Game loop (update + draw)
-//    - Screen management (start / playing / game over)
+//  Cosa mostra:
+//    - canvas nitido su schermi retina e ridimensionabile
+//    - game loop con delta time (stessa velocità a 60 e 120 Hz)
+//    - input da tastiera, mouse e touch
+//    - pausa automatica quando la scheda/finestra non è visibile
+//    - record salvato in localStorage con una chiave UNICA per questo gioco
+//
+//  Il gioco è indipendente: funziona aprendo index.html, dentro PewPlay
+//  o su qualsiasi altro sito.
 // ================================================================
 
-// ── CANVAS SETUP ──────────────────────────────────
+// ── IDENTITÀ DEL GIOCO ────────────────────────────
+// Usata come prefisso per localStorage: tutti i giochi PewPlay condividono
+// lo stesso dominio, quindi ogni gioco deve usare chiavi sue.
+const GAME_ID = 'my-game'; // ← metti il nome del repo
+
+// ── TESTI ─────────────────────────────────────────
+const T = {
+  title: 'My Game',
+  intro: 'Dodge the falling blocks!\nArrow keys, mouse or touch to move.',
+  play: 'Play',
+  again: 'Play again',
+  resume: 'Resume',
+  paused: 'Paused',
+  gameOver: 'Game Over',
+  result: (s, b) => `Score: ${s} · Best: ${b}`,
+  score: 'Score',
+  best: 'Best',
+};
+
+// ── SALVATAGGI ────────────────────────────────────
+const storage = {
+  get(key, fallback) {
+    try { const v = localStorage.getItem(`${GAME_ID}:${key}`); return v === null ? fallback : JSON.parse(v); }
+    catch { return fallback; }
+  },
+  set(key, value) {
+    try { localStorage.setItem(`${GAME_ID}:${key}`, JSON.stringify(value)); } catch { /* storage pieno o bloccato */ }
+  },
+};
+
+// ── CONFIG ────────────────────────────────────────
+const CONFIG = {
+  playerSize: 26,
+  playerSpeed: 420,        // pixel al secondo
+  playerColor: '#7C5CFC',
+  blockMin: 16,
+  blockMax: 42,
+  blockSpeed: 180,         // pixel al secondo all'inizio
+  blockSpeedPerPoint: 4,   // accelerazione per ogni punto
+  spawnEvery: 0.65,        // secondi tra un blocco e l'altro all'inizio
+  spawnMin: 0.18,
+  background: '#0a0a0f',
+  blockColor: '#ff4757',
+  hudColor: 'rgba(255,255,255,.85)',
+};
+
+// ── CANVAS ────────────────────────────────────────
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-
+let W = 0;
+let H = 0;
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = canvas.clientWidth;
+  H = canvas.clientHeight;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener('resize', resize);
 resize();
 
-// ── CONFIG ────────────────────────────────────────
-// Tweak these to change the feel of the game
-const CONFIG = {
-  playerSize: 24,
-  playerSpeed: 6,
-  playerColor: '#7C5CFC',
-
-  blockMinSize: 16,
-  blockMaxSize: 40,
-  blockSpeed: 3,          // starting speed
-  blockSpeedIncrease: 0.2, // speed increase per 10 points
-  spawnRate: 40,           // lower = more blocks (frames between spawns)
-
-  backgroundColor: '#0a0a0f',
-  blockColor: '#ff4757',
-  scoreColor: 'rgba(255, 255, 255, 0.85)',
-};
-
-// ── GAME STATE ────────────────────────────────────
-let state = 'start'; // 'start' | 'playing' | 'gameover'
+// ── STATO ─────────────────────────────────────────
+let state = 'start'; // 'start' | 'playing' | 'paused' | 'gameover'
 let score = 0;
-let highScore = parseInt(localStorage.getItem('highScore') || '0', 10);
-let frameCount = 0;
-
-// Player
-const player = { x: 0, y: 0, size: CONFIG.playerSize };
-
-// Falling blocks
+let best = storage.get('best', 0);
+let spawnTimer = 0;
 let blocks = [];
-
-// Input
+const player = { x: 0, y: 0, size: CONFIG.playerSize };
 const keys = {};
-let pointerX = null; // for mouse/touch control
+let pointerX = null;
 
-// ── DOM REFERENCES ────────────────────────────────
+// ── UI ────────────────────────────────────────────
 const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayText = document.getElementById('overlay-text');
 const startBtn = document.getElementById('start-btn');
 
-// ── INPUT HANDLING ────────────────────────────────
-document.addEventListener('keydown', (e) => {
+function showOverlay(title, text, button) {
+  overlayTitle.textContent = title;
+  overlayText.textContent = text;
+  startBtn.textContent = button;
+  overlay.classList.remove('hidden');
+  startBtn.focus({ preventScroll: true });
+}
+
+// ── INPUT ─────────────────────────────────────────
+function primaryAction() {
+  if (state === 'playing') pause();
+  else if (state === 'paused') resume();
+  else startGame();
+}
+document.addEventListener('keydown', e => {
   keys[e.code] = true;
-  if ((e.code === 'Space' || e.code === 'Enter') && state !== 'playing') {
-    startGame();
+  if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') {
+    if (e.target === startBtn && (e.code === 'Space' || e.code === 'Enter')) return; // ci pensa il click del pulsante
+    e.preventDefault();
+    if (e.code === 'Escape' && state !== 'playing') return;
+    primaryAction();
   }
+  if (e.code.startsWith('Arrow')) e.preventDefault(); // non far scorrere la pagina che contiene il gioco
 });
-document.addEventListener('keyup', (e) => { keys[e.code] = false; });
-
-// Mouse
-canvas.addEventListener('mousemove', (e) => {
-  if (state === 'playing') pointerX = e.clientX;
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+canvas.addEventListener('pointermove', e => { if (state === 'playing') pointerX = e.clientX; });
+canvas.addEventListener('pointerdown', e => {
+  if (state === 'paused') resume();
+  else if (state !== 'playing') startGame();
+  pointerX = e.clientX;
 });
-canvas.addEventListener('click', () => {
-  if (state !== 'playing') startGame();
-});
+canvas.addEventListener('pointerup', e => { if (e.pointerType === 'touch') pointerX = null; });
+startBtn.addEventListener('click', e => { e.stopPropagation(); primaryAction(); });
 
-// Touch
-canvas.addEventListener('touchmove', (e) => {
-  e.preventDefault();
-  if (state === 'playing') pointerX = e.touches[0].clientX;
-}, { passive: false });
-canvas.addEventListener('touchstart', (e) => {
-  e.preventDefault();
-  if (state !== 'playing') {
-    startGame();
-  } else {
-    pointerX = e.touches[0].clientX;
-  }
-}, { passive: false });
-canvas.addEventListener('touchend', () => { pointerX = null; });
+// Pausa automatica se l'utente cambia scheda o clicca fuori dal gioco
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+window.addEventListener('blur', pause);
 
-// Start button
-startBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  startGame();
-});
-
-// ── GAME FUNCTIONS ────────────────────────────────
-
+// ── LOGICA ────────────────────────────────────────
 function startGame() {
   score = 0;
-  frameCount = 0;
+  spawnTimer = 0;
   blocks = [];
-  player.x = canvas.width / 2;
-  player.y = canvas.height - 60;
-  player.size = CONFIG.playerSize;
+  player.x = W / 2 - player.size / 2;
+  player.y = H - player.size - 36;
   pointerX = null;
+  state = 'playing';
+  overlay.classList.add('hidden');
+}
+
+function pause() {
+  if (state !== 'playing') return;
+  state = 'paused';
+  showOverlay(T.paused, T.result(score, best), T.resume);
+}
+
+function resume() {
   state = 'playing';
   overlay.classList.add('hidden');
 }
 
 function gameOver() {
   state = 'gameover';
-  if (score > highScore) {
-    highScore = score;
-    localStorage.setItem('highScore', String(highScore));
-  }
-  overlayTitle.textContent = 'Game Over';
-  overlayText.textContent = `Score: ${score} | Best: ${highScore}`;
-  startBtn.textContent = 'Play Again';
-  overlay.classList.remove('hidden');
-}
-
-function showStart() {
-  overlayTitle.textContent = 'My Game';
-  overlayText.textContent = 'Dodge the falling blocks!\nMove with arrow keys, mouse, or touch.';
-  startBtn.textContent = 'Play';
-  overlay.classList.remove('hidden');
+  if (score > best) { best = score; storage.set('best', best); }
+  showOverlay(T.gameOver, T.result(score, best), T.again);
 }
 
 function spawnBlock() {
-  const size = CONFIG.blockMinSize + Math.random() * (CONFIG.blockMaxSize - CONFIG.blockMinSize);
+  const size = CONFIG.blockMin + Math.random() * (CONFIG.blockMax - CONFIG.blockMin);
   blocks.push({
-    x: Math.random() * (canvas.width - size),
+    x: Math.random() * (W - size),
     y: -size,
-    size: size,
-    speed: CONFIG.blockSpeed + (score / 10) * CONFIG.blockSpeedIncrease + Math.random() * 1.5,
+    size,
+    speed: CONFIG.blockSpeed + score * CONFIG.blockSpeedPerPoint + Math.random() * 90,
   });
 }
 
-function rectCollision(a, b) {
-  return (
-    a.x < b.x + b.size &&
-    a.x + a.size > b.x &&
-    a.y < b.y + b.size &&
-    a.y + a.size > b.y
-  );
-}
+const hit = (a, b) => a.x < b.x + b.size && a.x + a.size > b.x && a.y < b.y + b.size && a.y + a.size > b.y;
 
-// ── UPDATE ────────────────────────────────────────
-
-function update() {
+function update(dt) {
   if (state !== 'playing') return;
 
-  frameCount++;
+  const dir = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
+  if (dir) { player.x += dir * CONFIG.playerSpeed * dt; pointerX = null; }
+  if (pointerX !== null) player.x += (pointerX - (player.x + player.size / 2)) * Math.min(1, dt * 12);
+  player.x = Math.max(0, Math.min(W - player.size, player.x));
+  player.y = H - player.size - 36;
 
-  // Player movement — keyboard
-  if (keys['ArrowLeft'] || keys['KeyA']) player.x -= CONFIG.playerSpeed;
-  if (keys['ArrowRight'] || keys['KeyD']) player.x += CONFIG.playerSpeed;
-  if (keys['ArrowUp'] || keys['KeyW']) player.y -= CONFIG.playerSpeed;
-  if (keys['ArrowDown'] || keys['KeyS']) player.y += CONFIG.playerSpeed;
-
-  // Player movement — mouse/touch (horizontal follow)
-  if (pointerX !== null) {
-    const dx = pointerX - (player.x + player.size / 2);
-    if (Math.abs(dx) > 2) {
-      player.x += dx * 0.15;
-    }
+  spawnTimer -= dt;
+  if (spawnTimer <= 0) {
+    spawnBlock();
+    spawnTimer = Math.max(CONFIG.spawnMin, CONFIG.spawnEvery - score * 0.01);
   }
 
-  // Clamp to screen
-  player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
-  player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
-
-  // Spawn blocks
-  const spawnInterval = Math.max(10, CONFIG.spawnRate - Math.floor(score / 5));
-  if (frameCount % spawnInterval === 0) spawnBlock();
-
-  // Update blocks
   for (let i = blocks.length - 1; i >= 0; i--) {
-    blocks[i].y += blocks[i].speed;
-
-    // Collision check
-    if (rectCollision(player, blocks[i])) {
-      gameOver();
-      return;
-    }
-
-    // Remove off-screen blocks and score
-    if (blocks[i].y > canvas.height) {
-      blocks.splice(i, 1);
-      score++;
-    }
+    const b = blocks[i];
+    b.y += b.speed * dt;
+    if (hit(player, b)) return gameOver();
+    if (b.y > H) { blocks.splice(i, 1); score++; }
   }
 }
 
-// ── DRAW ──────────────────────────────────────────
+// ── DISEGNO ───────────────────────────────────────
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h);
+}
 
 function draw() {
-  // Background
-  ctx.fillStyle = CONFIG.backgroundColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = CONFIG.background;
+  ctx.fillRect(0, 0, W, H);
+  if (state === 'start') return;
 
-  if (state !== 'playing' && state !== 'gameover') return;
-
-  // Blocks
   ctx.fillStyle = CONFIG.blockColor;
-  for (const b of blocks) {
-    ctx.beginPath();
-    roundRect(ctx, b.x, b.y, b.size, b.size, 4);
-    ctx.fill();
-  }
+  for (const b of blocks) { roundRect(b.x, b.y, b.size, b.size, 5); ctx.fill(); }
 
-  // Player
-  ctx.fillStyle = CONFIG.playerColor;
-  ctx.beginPath();
-  roundRect(ctx, player.x, player.y, player.size, player.size, 6);
-  ctx.fill();
-
-  // Player glow
+  ctx.save();
   ctx.shadowColor = CONFIG.playerColor;
-  ctx.shadowBlur = 12;
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = CONFIG.playerColor;
+  roundRect(player.x, player.y, player.size, player.size, 7);
   ctx.fill();
-  ctx.shadowBlur = 0;
+  ctx.restore();
 
-  // Score HUD
-  ctx.fillStyle = CONFIG.scoreColor;
-  ctx.font = '600 16px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillStyle = CONFIG.hudColor;
+  ctx.font = '600 16px system-ui, -apple-system, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText(`Score: ${score}`, 16, 28);
+  ctx.fillText(`${T.score}: ${score}`, 16, 28);
   ctx.textAlign = 'right';
-  ctx.fillText(`Best: ${highScore}`, canvas.width - 16, 28);
+  ctx.fillText(`${T.best}: ${best}`, W - 16, 28);
 }
 
-// Rounded rectangle helper
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-// ── GAME LOOP ─────────────────────────────────────
-
-function loop() {
-  update();
+// ── LOOP ──────────────────────────────────────────
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); // max 50 ms: niente salti dopo una pausa
+  last = now;
+  update(dt);
   draw();
   requestAnimationFrame(loop);
 }
 
-// ── INIT ──────────────────────────────────────────
-showStart();
-loop();
+showOverlay(T.title, T.intro, T.play);
+requestAnimationFrame(loop);

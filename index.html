@@ -7,19 +7,20 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="game-container">
-    <canvas id="game"></canvas>
+  <main id="game-container">
+    <canvas id="game" aria-label="Game area"></canvas>
 
-    <!-- Start screen overlay -->
+    <!-- Schermata iniziale / pausa / game over -->
     <div id="overlay" class="overlay">
       <div class="overlay-content">
-        <h1 id="overlay-title">My Game</h1>
-        <p id="overlay-text">Tap or press Space to start</p>
-        <button id="start-btn">Play</button>
+        <h1 id="overlay-title"></h1>
+        <p id="overlay-text"></p>
+        <button id="start-btn" type="button"></button>
       </div>
     </div>
-  </div>
+  </main>
 
+  <!-- Percorsi SEMPRE relativi (niente "/" iniziale): il gioco viene pubblicato in /<nome-repo>/play/ -->
   <script src="game.js"></script>
 </body>
 </html>

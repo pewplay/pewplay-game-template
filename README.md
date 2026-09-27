@@ -1,112 +1,113 @@
-# 🎮 PewPlay Game Template
+# PewPlay Game Template
 
-Starter template for creating games on [PewPlay](https://www.pewplay.com). Pure HTML/CSS/JS — no build tools, no dependencies, no frameworks. Just open `index.html` and start coding.
+Punto di partenza per creare un gioco su [PewPlay](https://www.pewplay.com). HTML/CSS/JS puri: niente build, niente dipendenze. Il gioco è **indipendente**: funziona aprendo `index.html`, dentro PewPlay o su qualunque altro sito.
 
-## Quick Start
+## Branch
 
-1. Click **"Use this template"** on GitHub to create your repo
-2. Clone it and start editing
-3. Open `index.html` in your browser to test
-4. When ready, add the topic `web-game` to your repo
+| Branch | Dove finisce |
+|---|---|
+| `preview` | sito di anteprima (`preview.<progetto>.pages.dev`) |
+| `main` | sito pubblico (`www.pewplay.com`) |
 
-That's it — PewPlay's builder will pick it up automatically on the next build.
+Si lavora su `preview`, si controlla l'anteprima, poi si fa il merge in `main`.
 
-## Project Structure
+## Creare un nuovo gioco
+
+1. Su GitHub: **Use this template → Create a new repository** nell'organizzazione PewPlay.
+   Il nome del repo diventa l'indirizzo: `space-invaders` → `pewplay.com/space-invaders/`.
+2. Clona e crea il branch di lavoro:
+   ```bash
+   git checkout -b preview
+   ```
+3. In `game.js` cambia `GAME_ID` con il nome del repo, poi sviluppa (apri `index.html` nel browser per provarlo).
+4. Compila `game.json` e sostituisci `preview.png`.
+5. `git push -u origin preview` → il gioco compare sul **sito di anteprima**. Il link diretto è nel riepilogo della GitHub Action (tab *Actions → PewPlay*).
+6. Quando è pronto: togli `"draft": true` da `game.json`, fai il merge di `preview` in `main` (pull request o `git merge`) e push → online su pewplay.com.
+
+> Il template parte con `"draft": true` perché, alla creazione del repo, il codice demo finisce subito su `main`: così non va sul sito pubblico per sbaglio.
+
+## Aggiornare un gioco già online
+
+```bash
+git checkout preview
+git merge main          # se serve, per ripartire dall'ultima versione pubblicata
+# ...modifiche...
+git push                # aggiorna SOLO il sito di anteprima
+```
+Quando va bene, merge di `preview` in `main`: si aggiorna il sito pubblico.
+
+## File
 
 ```
-├── index.html       ← Main page (loaded inside PewPlay's iframe)
-├── style.css        ← Styles
-├── game.js          ← Game logic
-├── game.json        ← SEO metadata (title, description, keywords)
-├── preview.png      ← Card thumbnail (512×512 recommended)
+├── index.html      ← punto di ingresso (obbligatorio)
+├── game.js         ← logica del gioco
+├── style.css       ← stili
+├── game.json       ← titolo, descrizione, comandi… (vedi sotto)
+├── preview.png     ← immagine quadrata 512×512 per la card
+├── og.png          ← (facoltativa) 1200×630 per i link condivisi; se manca viene generata
+└── .github/workflows/pewplay.yml  ← collegamento a PewPlay, non toccarlo
 ```
 
-## Files That Matter
-
-### `game.json` — How your game appears on PewPlay
+## `game.json`
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/pewplay/pewplay/main/schema/game.schema.json",
   "title": "My Game",
-  "description": "A fun free browser game.",
-  "keywords": ["arcade", "puzzle", "multiplayer"],
+  "description": "Dodge the falling blocks for as long as you can…",
+  "howToPlay": "Move left and right to avoid the red blocks…",
+  "controls": [{ "input": "← →", "action": "Move" }],
   "category": "Arcade",
-  "author": "Your Name",
-  "playMode": "SinglePlayer"
+  "tags": ["dodge", "arcade"],
+  "author": "Your name",
+  "playMode": "SinglePlayer",
+  "orientation": "any",
+  "added": "2026-09-26",
+  "draft": true
 }
 ```
 
-All fields are optional. If missing, PewPlay generates defaults from the repo name.
+- Il sito è in inglese: scrivi i testi in inglese.
+- `category`: `Action`, `Arcade`, `Board`, `Card`, `Casual`, `Educational`, `Puzzle`, `Racing`, `Sports`, `Strategy`, `Other`.
+- `playMode`: `SinglePlayer`, `MultiPlayer`, `Both` · `orientation`: `any`, `landscape`, `portrait`.
+- `featured: true` lo mette in cima alla home · `added` dà il badge "New" per 30 giorni.
+- `exclude`: file o cartelle da non pubblicare, es. `["docs", "sources/*.psd"]`.
 
-| Field         | What it does                                        |
-|---------------|-----------------------------------------------------|
-| `title`       | Game name in the card, page title, and SEO           |
-| `description` | Meta description for search engines                  |
-| `keywords`    | Keywords for SEO and structured data                 |
-| `category`    | Game category (`Arcade`, `Puzzle`, `Strategy`, etc.) |
-| `author`      | Shown in structured data                             |
-| `playMode`    | `SinglePlayer` or `MultiPlayer`                      |
+Con `$schema` VS Code suggerisce i campi e segnala gli errori. Il riferimento completo è nel README del repo `pewplay`.
 
-### `preview.png` — The card image
+## Regole per stare dentro PewPlay
 
-This is what users see on the PewPlay homepage grid. Recommendations:
-- **512×512** or larger, square aspect ratio
-- Keep text minimal — it's displayed small
-- Show actual gameplay, not just a logo
+**Consentito**
+- Solo file statici: HTML, CSS, JS, immagini, audio, font, WebGL, WebAssembly, librerie da CDN.
+- Framework (Phaser, Three.js, React…) vanno bene, ma **committa i file già compilati**: PewPlay non esegue `npm install` né build.
+- **Percorsi relativi** (`src="game.js"`, non `src="/game.js"`): il gioco viene pubblicato in `/<nome-repo>/play/`.
+- `localStorage` con prefisso unico (`GAME_ID + ':' + chiave`): tutti i giochi condividono il dominio.
+- Metti in pausa quando la scheda non è visibile (`visibilitychange`), come nel template.
 
-### Screenshots (optional)
+**Non consentito**
+- Codice server (Node, PHP, Python) o database.
+- File oltre i 25 MB (limite Cloudflare Pages).
 
-Add `screenshot-1.png`, `screenshot-2.png`, etc. for richer Google results via JSON-LD.
+## Provare il gioco dentro il sito, in locale
 
-## The Demo Game
+Clona `pewplay` accanto al tuo gioco:
 
-This template includes a working "dodge the blocks" game as a starting point. It demonstrates:
-
-- **Canvas setup** with responsive resizing
-- **Game loop** using `requestAnimationFrame`
-- **State management** (start → playing → game over)
-- **Input handling** for keyboard, mouse, and touch
-- **Score + high score** with `localStorage`
-- **Collision detection**
-- **Overlay system** for menus
-
-Feel free to keep it, modify it, or delete everything and start fresh.
-
-## Development Tips
-
-**Test locally** — just open `index.html` in your browser. No server needed for most games. If you need a local server (for ES modules, fetch, etc.):
-
+```
+cartella/
+├── pewplay/
+└── mio-gioco/
+```
 ```bash
-# Python
-python3 -m http.server 8000
-
-# Node
-npx serve .
+cd pewplay
+npm install
+npm run check -- ../mio-gioco                    # controllo veloce
+npm run dev -- --games .. --only mio-gioco       # http://localhost:8080
 ```
 
-**Test in an iframe** — PewPlay loads your game inside an iframe. Test this locally:
+## Il gioco demo
 
-```html
-<iframe src="index.html" width="400" height="600" style="border:none"></iframe>
-```
+Il template contiene "dodge the blocks": canvas nitido su schermi retina, loop con delta time, tastiera/mouse/touch, pausa automatica, record salvato. Tienilo, modificalo o cancellalo.
 
-**Keep it lightweight** — no build step, no npm, no frameworks. The game runs on Cloudflare Pages as pure static files.
+## Licenza
 
-**Responsive** — games should work on both desktop and mobile. Handle touch input alongside keyboard/mouse.
-
-## Constraints
-
-Since games run on Cloudflare Pages inside PewPlay's iframe:
-
-- ✅ HTML, CSS, JS — anything static
-- ✅ Images, audio, fonts — any static assets
-- ✅ ES modules (`<script type="module">`)
-- ✅ Web APIs (Canvas, WebGL, Web Audio, Gamepad, etc.)
-- ✅ CDN libraries (load from cdnjs, unpkg, etc.)
-- ❌ No server-side code (no Node, no PHP, no Python)
-- ❌ No build step required (keep it deployable as-is)
-- ⚠️ `localStorage` works but is scoped to the parent domain
-
-## License
-
-MIT — do whatever you want with it.
+MIT
