@@ -95,6 +95,7 @@ Con `"$schema"` in cima, VS Code suggerisce i campi e segnala gli errori mentre 
 - **Percorsi relativi** (`src="game.js"`, non `src="/game.js"`): il gioco viene pubblicato in `/<nome-repo>/play/`.
 - `localStorage` con prefisso unico (`GAME_ID + ':' + chiave`): tutti i giochi condividono il dominio.
 - Metti in pausa quando la scheda non è visibile (`visibilitychange`), come nel template.
+- Se il gioco usa swipe o trascinamenti, metti `touch-action: none` sull'area di gioco (come fa il `canvas` del template): altrimenti lo swipe muove anche la pagina. Lascia invece libero lo scorrimento sulle parti che non servono a giocare. Per scorrere la pagina c'è sempre la barra sotto il gioco.
 
 **Non consentito**
 - Codice server (Node, PHP, Python) o database.
