@@ -26,27 +26,25 @@ jobs:
     name: Controlla e pubblica
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Scarica il controllore di PewPlay
         id: checker
         continue-on-error: true
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ github.repository_owner }}/pewplay
           path: .pewplay
           sparse-checkout: src
-          # Se il repo pewplay è privato serve un token con accesso: si usa lo stesso del dispatch
-          token: ${{ secrets.PEWPLAY_DISPATCH_TOKEN || github.token }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 
       - name: Controlla il gioco
         run: |
           if [ ! -f .pewplay/src/check-game.js ]; then
-            echo "::warning title=Controllo saltato::Non è stato possibile scaricare ${{ github.repository_owner }}/pewplay (repo privato senza il secret PEWPLAY_DISPATCH_TOKEN, oppure nome diverso). Il gioco verrà comunque controllato durante la build del sito."
+            echo "::warning title=Controllo saltato::Non è stato possibile scaricare ${{ github.repository_owner }}/pewplay. Il gioco verrà comunque controllato durante la build del sito."
             exit 0
           fi
           node .pewplay/src/check-game.js .

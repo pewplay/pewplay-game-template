@@ -1,18 +1,31 @@
 {
   "$schema": "https://raw.githubusercontent.com/pewplay/pewplay/main/schema/game.schema.json",
   "title": "My Game",
-  "description": "Dodge the falling blocks for as long as you can. A quick free browser game, no download needed.",
-  "howToPlay": "Move left and right to avoid the red blocks. Every block you dodge is worth one point, and the game speeds up as your score grows.",
+  "description": "Dodge the falling blocks for as long as you can. A quick free browser game that runs on desktop, tablet and mobile.",
+  "about": "My Game is a fast arcade challenge: red blocks rain from the top of the screen and you have to slip between them for as long as you can. Each block you dodge is worth one point, and the longer you survive the faster they fall.\n\nRounds last seconds, so it is perfect for a quick break — but beating your best score takes real focus. Your record is saved in your browser, so you can come back and try again any time.",
+  "howToPlay": "Move left and right to avoid the red blocks. Every block that leaves the screen gives you one point. The game speeds up as your score grows, and it ends as soon as a block touches you.",
   "controls": [
-    { "input": "← → / A D", "action": "Move" },
+    { "input": "← → / A D", "action": "Move left and right" },
     { "input": "Mouse / Touch", "action": "Follow the pointer" },
     { "input": "Space / P", "action": "Start / pause" }
   ],
+  "tips": [
+    "Stay near the middle: it is easier to escape to either side.",
+    "Small blocks fall faster than big ones — watch them first.",
+    "On mobile, keep your finger slightly below the square so you can see it."
+  ],
+  "faq": [
+    { "question": "Is My Game free?", "answer": "Yes. It is completely free and runs in your browser — no download or sign-up needed." },
+    { "question": "Does it work on phones and tablets?", "answer": "Yes. You can play with touch on phones and tablets, or with the keyboard and mouse on a computer." },
+    { "question": "Is my best score saved?", "answer": "Yes, your best score is saved in your browser on this device." }
+  ],
   "category": "Arcade",
-  "tags": ["dodge", "reflex", "arcade"],
+  "tags": ["dodge", "reflex", "arcade", "endless"],
   "author": "PewPlay",
   "playMode": "SinglePlayer",
   "orientation": "any",
+  "cover": "cover.png",
+  "screenshots": ["screenshots/1.png", "screenshots/2.png"],
   "added": "2026-09-26",
   "draft": true
 }

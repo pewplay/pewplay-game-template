@@ -39,41 +39,53 @@ Quando va bene, merge di `preview` in `main`: si aggiorna il sito pubblico.
 ## File
 
 ```
-├── index.html      ← punto di ingresso (obbligatorio)
-├── game.js         ← logica del gioco
-├── style.css       ← stili
-├── game.json       ← titolo, descrizione, comandi… (vedi sotto)
-├── preview.png     ← immagine quadrata 512×512 per la card
-├── og.png          ← (facoltativa) 1200×630 per i link condivisi; se manca viene generata
+├── index.html          ← punto di ingresso (obbligatorio)
+├── game.js             ← logica del gioco
+├── style.css           ← stili
+├── game.json           ← testi e impostazioni della pagina del gioco (vedi sotto)
+├── preview.png         ← icona quadrata 512×512: card in home, categorie, giochi correlati
+├── cover.png           ← copertina 16:9, 1280×720: schermata "Play now", giochi in evidenza, link condivisi
+├── screenshots/        ← 2–4 screenshot 1280×720: galleria nella pagina del gioco
+│   ├── 1.png
+│   └── 2.png
+├── og.png              ← (facoltativa) immagine per i link condivisi 1200×630; se manca viene generata
 └── .github/workflows/pewplay.yml  ← collegamento a PewPlay, non toccarlo
 ```
 
+Le immagini vengono ottimizzate dal sito (AVIF/WebP in più dimensioni): puoi caricarle in PNG o JPG senza preoccuparti del peso. `cover.png` e la cartella `screenshots/` non finiscono dentro il gioco pubblicato.
+
 ## `game.json`
 
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/pewplay/pewplay/main/schema/game.schema.json",
-  "title": "My Game",
-  "description": "Dodge the falling blocks for as long as you can…",
-  "howToPlay": "Move left and right to avoid the red blocks…",
-  "controls": [{ "input": "← →", "action": "Move" }],
-  "category": "Arcade",
-  "tags": ["dodge", "arcade"],
-  "author": "Your name",
-  "playMode": "SinglePlayer",
-  "orientation": "any",
-  "added": "2026-09-26",
-  "draft": true
-}
-```
+Il file completo di esempio è `game.json` di questo template. Ogni campo compare in un punto preciso della pagina del gioco:
 
-- Il sito è in inglese: scrivi i testi in inglese.
-- `category`: `Action`, `Arcade`, `Board`, `Card`, `Casual`, `Educational`, `Puzzle`, `Racing`, `Sports`, `Strategy`, `Other`.
-- `playMode`: `SinglePlayer`, `MultiPlayer`, `Both` · `orientation`: `any`, `landscape`, `portrait`.
-- `featured: true` lo mette in cima alla home · `added` dà il badge "New" per 30 giorni.
-- `exclude`: file o cartelle da non pubblicare, es. `["docs", "sources/*.psd"]`.
+| Campo | Dove si vede | Consigli |
+|---|---|---|
+| `title` | titolo della pagina, card, risultati Google | 2–4 parole |
+| `description` | sotto il titolo, risultati Google, link condivisi | **50–160 caratteri**, una frase che dice cosa si fa |
+| `about` | sezione "About …" | 1–3 paragrafi (separa i paragrafi con `\n\n`). **È il testo più importante per Google**: scrivi cosa rende il gioco divertente, le modalità, i livelli |
+| `howToPlay` | sezione "How to play" e pulsante **?** nella barra del gioco | regole in 2–4 frasi |
+| `controls` | tabella "Controls" e pulsante **?** | `{ "input": "Space", "action": "Jump" }` |
+| `tips` | elenco "Tips" | 2–5 consigli, una frase ciascuno |
+| `faq` | domande e risposte in fondo alla pagina | 2–4 domande che un giocatore farebbe davvero |
+| `category` | pagina di categoria (`/puzzle-games/`…), breadcrumb | `Action`, `Arcade`, `Board`, `Card`, `Casual`, `Educational`, `Puzzle`, `Racing`, `Sports`, `Strategy`, `Other` |
+| `tags` | etichette, ricerca del sito | 3–6 parole chiave |
+| `author` | "By …" in fondo alla scheda | |
+| `playMode` | etichetta giocatori | `SinglePlayer`, `MultiPlayer`, `Both` |
+| `orientation` | avviso "ruota il dispositivo" su mobile | `any`, `landscape`, `portrait` |
+| `cover` | copertina (default: `cover.png`) | 16:9, 1280×720 |
+| `screenshots` | galleria (default: tutte le immagini in `screenshots/`) | max 8, consigliati 2–4 |
+| `featured` | "Featured games" in cima alla home | `true` per pochi giochi di punta |
+| `added` | badge "New" per 30 giorni, ordine in home | `AAAA-MM-GG` |
+| `draft` | `true` = mai sul sito pubblico | toglilo quando fai il merge in `main` |
+| `exclude` | file da non pubblicare | es. `["docs", "*.psd"]` |
 
-Con `$schema` VS Code suggerisce i campi e segnala gli errori. Il riferimento completo è nel README del repo `pewplay`.
+Tutti i testi vanno in **inglese**. Solo `title` è davvero necessario; gli altri campi sono facoltativi ma ogni campo compilato rende la pagina più ricca per i giocatori e per Google. `npm run check` (o la GitHub Action) ti dice quali mancano.
+
+Con `"$schema"` in cima, VS Code suggerisce i campi e segnala gli errori mentre scrivi.
+
+### Come fare copertina e screenshot
+- **Screenshot**: gioca, premi il tasto per lo screenshot della finestra del browser (o usa gli strumenti per sviluppatori → "Capture screenshot") con la finestra a 1280×720.
+- **Copertina**: uno screenshot bello del gioco in azione va benissimo; meglio ancora un'immagine disegnata con i personaggi/elementi del gioco. Evita testo piccolo: il titolo lo aggiunge già il sito.
 
 ## Regole per stare dentro PewPlay
 
@@ -106,7 +118,7 @@ npm run dev -- --games .. --only mio-gioco       # http://localhost:8080
 
 ## Il gioco demo
 
-Il template contiene "dodge the blocks": canvas nitido su schermi retina, loop con delta time, tastiera/mouse/touch, pausa automatica, record salvato. Tienilo, modificalo o cancellalo.
+Il template contiene "dodge the blocks" con `game.json` compilato in ogni campo, copertina e screenshot: usalo come esempio: canvas nitido su schermi retina, loop con delta time, tastiera/mouse/touch, pausa automatica, record salvato. Tienilo, modificalo o cancellalo.
 
 ## Licenza
 
