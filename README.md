@@ -95,7 +95,7 @@ Con `"$schema"` in cima, VS Code suggerisce i campi e segnala gli errori mentre 
 - **Percorsi relativi** (`src="game.js"`, non `src="/game.js"`): il gioco viene pubblicato in `/<nome-repo>/play/`.
 - `localStorage` con prefisso unico (`GAME_ID + ':' + chiave`): tutti i giochi condividono il dominio.
 - Metti in pausa quando la scheda non è visibile (`visibilitychange`), come nel template.
-- Se il gioco usa swipe o trascinamenti, metti `touch-action: none` sull'area di gioco (come fa il `canvas` del template): altrimenti lo swipe muove anche la pagina. Lascia invece libero lo scorrimento sulle parti che non servono a giocare. Per scorrere la pagina c'è sempre la barra sotto il gioco.
+- Swipe e rotella: non serve fare niente. Dentro PewPlay il sito impedisce a qualunque gioco di far scorrere la pagina (le parti scorrevoli del gioco continuano a scorrere) e mette `touch-action: none` sui `canvas`. Per scendere alle informazioni c'è la barra sotto il gioco. Aperto da solo, il gioco resta esattamente com'è nel repo.
 
 **Non consentito**
 - Codice server (Node, PHP, Python) o database.
